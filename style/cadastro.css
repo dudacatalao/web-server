@@ -20,6 +20,7 @@ body {
     background-color: rgba(17, 24, 39, 1);
     padding: 2rem;
     color: rgba(243, 244, 246, 1);
+    margin-bottom: 240px;
 }
 
 .title {
@@ -37,6 +38,8 @@ body {
     margin-top: 0.25rem;
     font-size: 0.875rem;
     line-height: 1.25rem;
+    padding-right: 41px;
+    margin-bottom: 15px;
 }
 
 .input-group label {
@@ -143,5 +146,10 @@ body {
     align-items: center;
     display: flex;
     margin-top: 230px;
+  }
+
+  .welcome_message{
+    text-align: center;
+    margin-bottom: 15px;
   }
   

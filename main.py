@@ -1,5 +1,5 @@
 #importa o modulo http server
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 import os
 from http.server import SimpleHTTPRequestHandler
 import socketserver
@@ -11,7 +11,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         try:
             f = open(os.path.join(path, 'pwbe.html'), 'r')
             self.send_response(200)
-            self.send_header('Content type', 'text/html')
+            self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(f.read().encode('utf-8'))
             f.close()
@@ -84,8 +84,15 @@ class MyHandler(SimpleHTTPRequestHandler):
                         print('senha: ' + senha)
                         return senha == stored_senha
         return False
+    
+    def remover_ultima_linha(self, arquivo):
+            print('Excluindo a ultima linha..')
 
-            
+            with open(arquivo, 'r', encoding='utf-8') as file:
+                lines = file.readlines()
+            with open(arquivo, 'w', encoding='utf-8') as file:
+                file.writelines(lines[:-1])
+
     def do_POST(self):
         #verifica se a rota é enviar login
         if self.path == '/enviar_login':
@@ -127,6 +134,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                     self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
                     self.end_headers()
                     return
+                
         elif self.path.startswith('/confirmar_cadastro'):
             content_length = int(self.headers['Content-Length'])
 
@@ -151,20 +159,21 @@ class MyHandler(SimpleHTTPRequestHandler):
                             line = f'{login};{senha};{nome}\n'
                             file.write(line)
 
-            self.send_response(302)
-            self.send_header('Content-type', 'text/html ; charset=utf-8')
-            self.end_headers()
-            self.wfile.write('Registro recebido com sucesso!'.encode('utf-8'))
+                self.send_response(302)
+                self.send_header('Content-type', 'text/html ; charset=utf-8')
+                self.end_headers()
+                self.wfile.write('Registro recebido com sucesso!'.encode('utf-8'))
+
+            else:
+                self.remover_ultima_linha('dados_login.txt')
+                self.send_response(302)
+                self.send_header('Content-type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
         else:
             super(MyHandler,self).do_POST()
 
-        def remover_ultima_linha(self, arquivo):
-            print('Excluindo a ultima linha..')
-
-            with open(arquivo, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-            with open(arquivo, 'w', encoding='uts-8') as file:
-                file.writelines(lines[:-1])
+        
 
 
 #define a porta e e ip utilizados

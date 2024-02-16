@@ -3,6 +3,7 @@ from urllib.parse import parse_qs, urlparse
 import os
 from http.server import SimpleHTTPRequestHandler
 import socketserver
+import hashlib
 
 
 
@@ -78,14 +79,22 @@ class MyHandler(SimpleHTTPRequestHandler):
         with open('dados_login.txt', 'r',encoding='utf-8') as file:
             for line in file:
                 if line.strip():
-                    stored_login, stored_senha, stored_nome = line.strip().split(';')
+                    stored_login, stored_senha_hash, stored_nome = line.strip().split(';')
                     if login == stored_login:
                         print('Login informado localizado')
                         print('senha: ' + senha)
-                        print(stored_senha)
-                        
-                        return senha == stored_senha
+
+                        #trecho hash
+                        senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+                        return senha_hash == stored_senha_hash
         return False
+    
+    def adicionar_usuario(self, login, senha, nome):
+        #trecho hash
+        senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+
+        with open('dados_login.txt', 'a', encoding='utf-8') as file:
+            file.write(f'{login};{senha_hash};{nome}\n')
     
     def remover_ultima_linha(self, arquivo):
             print('Excluindo a ultima linha..')
@@ -133,8 +142,9 @@ class MyHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
                     return
                 else:
-                    with open('dados_login.txt', 'a', encoding='utf-8') as file:
-                        file.write(f'{login};{senha};' + "nome" + "\n")
+                    self.adicionar_usuario(login, senha, nome='None')
+                    # with open('dados_login.txt', 'a', encoding='utf-8') as file:
+                    #     file.write(f'{login};{senha};' + "nome" + "\n")
 
                     self.send_response(302)
                     self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
@@ -152,6 +162,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             senha = form_data.get('senha', [''])[0]
             nome = form_data.get('nome', [''])[0]
 
+            senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+
             print('nome:' + nome)
 
             if self.usuario_existente(login, senha):
@@ -161,8 +173,8 @@ class MyHandler(SimpleHTTPRequestHandler):
                 with open('dados_login.txt', 'w', encoding='utf-8') as file:
                     for line in lines:
                         stored_login, stored_senha, stored_nome = line.strip().split(';')
-                        if login == stored_login and senha == stored_senha:
-                            line = f'{login};{senha};{nome}\n'
+                        if login == stored_login and senha_hash == stored_senha:
+                            line = f'{login};{senha_hash};{nome}\n'
                             file.write(line)
 
                 self.send_response(302)

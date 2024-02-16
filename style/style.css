@@ -16,6 +16,11 @@ main {
     
 }
 
+body{
+  background-color: #f4effa;
+  margin: 0;
+}
+
 .container {
     max-width: 1500px;
     margin: 0 auto;
@@ -195,7 +200,7 @@ header {
   text-align: center;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-top: 550px;
+  margin-top: 800px;
 }
 
 @keyframes degrade {
@@ -340,3 +345,24 @@ header {
   
  }
 
+/* scroll animação */
+
+
+.trilo{
+  width: 350px;
+  height: 150px;
+  background-color: aquamarine;
+  flex-direction: column;
+  border-radius: 150px;
+  position: relative;
+  cursor: pointer;
+}
+
+.trilho, .indicador{
+  width: 150px;
+  height: 150px;
+  background-color: #000;
+  border-radius: 50%;
+  transform: scale(.9);
+
+}

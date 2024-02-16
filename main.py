@@ -82,6 +82,8 @@ class MyHandler(SimpleHTTPRequestHandler):
                     if login == stored_login:
                         print('Login informado localizado')
                         print('senha: ' + senha)
+                        print(stored_senha)
+                        
                         return senha == stored_senha
         return False
     
@@ -106,20 +108,24 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             login = form_data.get('email', [''])[0]
             senha = form_data.get('senha', [''])[0]
+            
+            print('aqui')
+
+            
 
             if self.usuario_existente(login, senha):
+                
+                # with open(os.path.join(os.getcwd(), 'usuario_novo.html'), 'a', encoding='utf-8') as login_file:
+                  
+
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html ; charset=utf-8')
                 self.end_headers()
-                
-                try:
-                    with open(os.path.join(os.getcwd(), 'usuario_novo.html'), 'a', encoding='utf-8') as login_file:
-                        mensagem = f'Usuário {login} logado com sucesso!'
-                        self.wfile.write(mensagem.encode('utf-8'))
-                except FileNotFoundError:
-                    self.send_error(404, 'File Not Found')
+                mensagem = f'Usuário {login} logado com sucesso!'
+                self.wfile.write(mensagem.encode('utf-8'))
 
             else:
+                
                 if any(line.startswith(f'{login};') for line in open('dados_login.txt' , 'r', encoding='utf-8')):
                     
                     self.send_response(302)
@@ -133,7 +139,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                     self.send_response(302)
                     self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
                     self.end_headers()
-                    return
+                    return       
                 
         elif self.path.startswith('/confirmar_cadastro'):
             content_length = int(self.headers['Content-Length'])
@@ -144,15 +150,15 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             login = form_data.get('email', [''])[0]
             senha = form_data.get('senha', [''])[0]
-            nome = form_data.get('nome', [''][0])
+            nome = form_data.get('nome', [''])[0]
 
-            print('nome: ' + nome)
+            print('nome:' + nome)
 
             if self.usuario_existente(login, senha):
                 with open('dados_login.txt', 'r', encoding='utf-8') as file:
                     lines = file.readlines()
 
-                with open('dados_login.txt', 'r', encoding='utf-8') as file:
+                with open('dados_login.txt', 'w', encoding='utf-8') as file:
                     for line in lines:
                         stored_login, stored_senha, stored_nome = line.strip().split(';')
                         if login == stored_login and senha == stored_senha:

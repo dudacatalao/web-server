@@ -57,7 +57,7 @@ header {
 }
 
 .menu nav a:hover::after {
-    width: 38px;
+    width: 52px;
 }
 
 .group {
@@ -189,7 +189,7 @@ header {
   font-weight: bold; 
   font-size: 100px; 
   text-transform: uppercase; 
-  background: linear-gradient(45deg, #b79ced, #957fef, #7161ef, #b79ced); 
+  background: linear-gradient(45deg, #b8b8ff, #957fef, #7161ef, #b8b8ff); 
   background-size: 400% 100%;
   animation: degrade 10s linear infinite alternate;
   text-align: center;
@@ -258,15 +258,17 @@ header {
  .card-social {
   transform: translateY(200%);
   display: flex;
-  justify-content: space-around;
+  text-align: center;
   width: 100%;
   opacity: 0;
   transition: transform .2s ease, opacity .2s ease;
+  margin-right: 70px;
+  padding-right: 150px;
  }
  
  .card-social__item {
   list-style: none;
-  margin-right: 65px;
+  
  }
  
  .card-social__item svg {
@@ -276,6 +278,7 @@ header {
   fill: #515F65;
   cursor: pointer;
   transition: fill 0.2s ease ,transform 0.2s ease;
+  padding-right: 28px;
  }
  
  /*Text*/
@@ -316,5 +319,24 @@ header {
 
  .cards{
   margin-top: 150px;
-  justify-content: space-between;
+  justify-content: space-around;
+  display: flex;
+  padding-right: 150px;
+  padding-left: 150px;
  }
+
+ .information_pwbe{
+  display: inline-block;
+  position: relative;
+ }
+
+ .information_pwbe p {
+  position: absolute;
+  top: 50px;
+  right: 800px;
+  left: 800px;
+  font-size: 40px;
+  color: white;
+  
+ }
+

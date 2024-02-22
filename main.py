@@ -89,6 +89,24 @@ class MyHandler(SimpleHTTPRequestHandler):
 
                 self.wfile.write(content.encode('utf-8'))
                 return
+            
+        elif self.path == '/atividade':
+            print('aqui')
+            query_params = parse_qs(urlparse(self.path).query)
+            descricao = query_params.get('descricao', [''])[0]
+            codigo = query_params.get('codigo', [''])[0]
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+
+            with open(os.path.join(os.getcwd(), 'cad_atividades.html'), 'r' , encoding='utf-8') as file:
+                content = file.read()
+                content = content.replace('{descricao}', descricao)
+                content = content.replace('{codigo}', codigo)
+
+                self.wfile.write(content.encode('utf-8'))
+                return
 
         else:
             #se não achar a rota "/login", continua o comportamento padrão
@@ -216,6 +234,21 @@ class MyHandler(SimpleHTTPRequestHandler):
             descricao = form_data.get('descricao', [''])[0]
 
             with open('dados_turma.txt', 'a', encoding='utf-8') as file:
+                file.write(f'{codigo};{descricao}\n')
+
+            self.send_response(302)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+
+        elif self.path == '/cad_atividade':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            codigo = form_data.get('codigo', [''])[0]
+            descricao = form_data.get('descricao', [''])[0]
+
+            with open('dados_atividades.txt', 'a', encoding='utf-8') as file:
                 file.write(f'{codigo};{descricao}\n')
 
             self.send_response(302)

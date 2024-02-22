@@ -24,9 +24,7 @@ class MyHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         #tenta abrir o arquivo login
-        print('oioiioioio')
         if self.path == '/login':
-            print('login iniciado')
             try:
                 with open(os.path.join(os.getcwd(), 'login.html'), 'r', encoding='utf-8') as login_file:
                     content = login_file.read()
@@ -73,7 +71,6 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return
             
         elif self.path == '/turmas':
-            print('aqui')
             query_params = parse_qs(urlparse(self.path).query)
             descricao = query_params.get('descricao', [''])[0]
             codigo = query_params.get('codigo', [''])[0]
@@ -91,7 +88,6 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return
             
         elif self.path == '/atividade':
-            print('aqui')
             query_params = parse_qs(urlparse(self.path).query)
             descricao = query_params.get('descricao', [''])[0]
             codigo = query_params.get('codigo', [''])[0]
@@ -110,7 +106,6 @@ class MyHandler(SimpleHTTPRequestHandler):
 
         else:
             #se não achar a rota "/login", continua o comportamento padrão
-            print('oi')
             super().do_GET()
 
     def usuario_existente(self, login, senha):
@@ -226,6 +221,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
 
         elif self.path == '/cad_turma':
+            #criar uma pagina ou msg pra ser mostrada
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body, keep_blank_values=True)
@@ -241,6 +237,7 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.end_headers()
 
         elif self.path == '/cad_atividade':
+            #criar uma pagina ou msg pra ser mostrada
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length).decode('utf-8')
             form_data = parse_qs(body, keep_blank_values=True)

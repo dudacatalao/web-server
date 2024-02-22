@@ -24,7 +24,9 @@ class MyHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         #tenta abrir o arquivo login
+        print('oioiioioio')
         if self.path == '/login':
+            print('login iniciado')
             try:
                 with open(os.path.join(os.getcwd(), 'login.html'), 'r', encoding='utf-8') as login_file:
                     content = login_file.read()
@@ -69,9 +71,28 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(content.encode('utf-8'))
 
                 return
+            
+        elif self.path == '/turmas':
+            print('aqui')
+            query_params = parse_qs(urlparse(self.path).query)
+            descricao = query_params.get('descricao', [''])[0]
+            codigo = query_params.get('codigo', [''])[0]
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+
+            with open(os.path.join(os.getcwd(), 'cadastro_turmas.html'), 'r' , encoding='utf-8') as file:
+                content = file.read()
+                content = content.replace('{descricao}', descricao)
+                content = content.replace('{codigo}', codigo)
+
+                self.wfile.write(content.encode('utf-8'))
+                return
 
         else:
             #se não achar a rota "/login", continua o comportamento padrão
+            print('oi')
             super().do_GET()
 
     def usuario_existente(self, login, senha):
@@ -117,9 +138,6 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             login = form_data.get('email', [''])[0]
             senha = form_data.get('senha', [''])[0]
-            
-            print('aqui')
-
             
 
             if self.usuario_existente(login, senha):
@@ -188,8 +206,23 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
                 self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
+
+        elif self.path == '/cad_turma':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            codigo = form_data.get('codigo', [''])[0]
+            descricao = form_data.get('descricao', [''])[0]
+
+            with open('dados_turma.txt', 'a', encoding='utf-8') as file:
+                file.write(f'{codigo};{descricao}\n')
+
+            self.send_response(302)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
         else:
-            super(MyHandler,self).do_POST()
+            super(MyHandler, self).do_POST()
 
         
 

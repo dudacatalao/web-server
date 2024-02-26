@@ -23,17 +23,17 @@ class MyHandler(SimpleHTTPRequestHandler):
         return super().list_directory(path)
 
     def do_GET(self):
-        #tenta abrir o arquivo login
         if self.path == '/login':
             try:
                 with open(os.path.join(os.getcwd(), 'login.html'), 'r', encoding='utf-8') as login_file:
                     content = login_file.read()
                 self.send_response(200)
-                self.send_header('Content type', 'text/html')
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(content.encode('utf-8'))
             except FileNotFoundError:
                 self.send_error(404, 'File Not Found')
+
 
         elif self.path == '/login_failed':
             self.send_response(200)
@@ -104,6 +104,31 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(content.encode('utf-8'))
                 return
 
+        elif self.path == '/atividades_prof':
+            query_params = parse_qs(urlparse(self.path).query)
+            professor = query_params.get('professor', [''])[0]
+            codigo = query_params.get('codigo', [''])[0]
+
+            with open(os.path.join(os.getcwd(), 'atividades_professor.html'), 'r' , encoding='utf-8') as file:
+                content = file.read()
+
+                nomes = self.obter_nomes()  
+                nomes_html = '<ul>'
+                for nome in nomes:
+                    nomes_html += f'<li>{nome}</li>'
+                nomes_html += '</ul>'
+
+                content = content.replace('<!--NOMES-->', nomes_html)
+                content = content.replace('{professor}', professor)  
+                content = content.replace('{codigo}', codigo)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(content.encode('utf-8'))
+
+            return
+
         else:
             #se não achar a rota "/login", continua o comportamento padrão
             super().do_GET()
@@ -127,7 +152,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         #trecho hash
         senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
 
-        with open('dados_login.txt', 'a', encoding='utf-8') as file:
+        with open('dados_login.txt', 'w', encoding='utf-8') as file:
             file.write(f'{login};{senha_hash};{nome}\n')
     
     def remover_ultima_linha(self, arquivo):
@@ -137,6 +162,35 @@ class MyHandler(SimpleHTTPRequestHandler):
                 lines = file.readlines()
             with open(arquivo, 'w', encoding='utf-8') as file:
                 file.writelines(lines[:-1])
+
+    def obter_nomes(self):
+        nomes = [] 
+        with open('dados_login.txt', 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+            for line in lines:
+                partes = line.split(';')
+                if len(partes) >= 3:  
+                    conteudo = partes[2].strip() 
+                    nomes.append(conteudo)
+
+        with open(os.path.join(os.getcwd(), 'atividades_professor.html'), 'r', encoding='utf-8') as login_file:
+            content = login_file.read()
+            print('aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(content.encode('utf-8'))
+
+            nomes_html = '<ul>'
+            for nome in nomes:
+                nomes_html += f'<li>{nome}</li>'
+            nomes_html += '</ul>'
+
+            content = content.replace('<!--NOMES-->', nomes_html)
+
+            
+
 
     def do_POST(self):
         #verifica se a rota é enviar login
@@ -166,21 +220,20 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             else:
                 
-                if any(line.startswith(f'{login};') for line in open('dados_login.txt' , 'r', encoding='utf-8')):
-                    
+                if any(line.startswith(f"{login};") for line in open('dados_login.txt', 'r', encoding='utf-8')):
                     self.send_response(302)
                     self.send_header('Location', '/login_failed')
                     self.end_headers()
-                    return
+                    return  
                 else:
                     self.adicionar_usuario(login, senha, nome='None')
-                    # with open('dados_login.txt', 'a', encoding='utf-8') as file:
-                    #     file.write(f'{login};{senha};' + "nome" + "\n")
 
+                    
                     self.send_response(302)
-                    self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
+                    self.send_header('Location', f'/cadastro?login={login}&senha{senha}')
                     self.end_headers()
-                    return       
+
+                    return      
                 
         elif self.path.startswith('/confirmar_cadastro'):
             content_length = int(self.headers['Content-Length'])
@@ -201,12 +254,13 @@ class MyHandler(SimpleHTTPRequestHandler):
                 with open('dados_login.txt', 'r', encoding='utf-8') as file:
                     lines = file.readlines()
 
-                with open('dados_login.txt', 'w', encoding='utf-8') as file:
+                with open('dados_login.txt', 'a', encoding='utf-8') as file:
                     for line in lines:
                         stored_login, stored_senha, stored_nome = line.strip().split(';')
                         if login == stored_login and senha_hash == stored_senha:
-                            line = f'{login};{senha_hash};{nome}\n'
-                            file.write(line)
+                            line = f"{login};{senha_hash};{nome}\n"
+
+                        file.write(line)
 
                 self.send_response(302)
                 self.send_header('Content-type', 'text/html ; charset=utf-8')

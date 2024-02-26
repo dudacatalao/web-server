@@ -141,77 +141,72 @@
         color: rgba(156, 163, 175, 1);
       }
 
-      main{
+      main {
         justify-content: center;
         align-items: center;
         display: flex;
         margin-top: 230px;
       }
 
-      body{
+      body {
         background-color: #f4effa;
       }
 
       .sign {
-    width: 100%;
-    transition-duration: .3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .sign svg {
-    width: 17px;
-  }
-  
-  .sign svg path {
-    fill: white;
-  }
-  /* text */
-  .text {
-    position: absolute;
-    right: 0%;
-    width: 0%;
-    opacity: 0;
-    color: white;
-    font-size: 1.2em;
-    font-weight: 600;
-    transition-duration: .3s;
-  }
-  /* hover effect on button width */
-  .Btn:hover {
-    width: 125px;
-    border-radius: 40px;
-    transition-duration: .3s;
-  }
-  
-  .Btn:hover .sign {
-    width: 30%;
-    transition-duration: .3s;
-    padding-left: 0px;
-  }
-  /* hover effect button's text */
-  .Btn:hover .text {
-    opacity: 1;
-    width: 70%;
-    transition-duration: .3s;
-    padding-right: 10px;
-  }
-  /* button click effect*/
-  .Btn:active {
-    transform: translate(2px ,2px);
-  }
+        width: 100%;
+        transition-duration: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    
+      .sign svg {
+        width: 17px;
+      }
+
+      .sign svg path {
+        fill: white;
+      }
+      /* text */
+      .text {
+        position: absolute;
+        right: 0%;
+        width: 0%;
+        opacity: 0;
+        color: white;
+        font-size: 1.2em;
+        font-weight: 600;
+        transition-duration: 0.3s;
+      }
+      /* hover effect on button width */
+      .Btn:hover {
+        width: 125px;
+        border-radius: 40px;
+        transition-duration: 0.3s;
+      }
+
+      .Btn:hover .sign {
+        width: 30%;
+        transition-duration: 0.3s;
+        padding-left: 0px;
+      }
+      /* hover effect button's text */
+      .Btn:hover .text {
+        opacity: 1;
+        width: 70%;
+        transition-duration: 0.3s;
+        padding-right: 10px;
+      }
+      /* button click effect*/
+      .Btn:active {
+        transform: translate(2px, 2px);
+      }
     </style>
   </head>
   <body>
-    <header>
-      
-    </header>
+    <header></header>
 
     <main>
-
       <!-- <div class="side">
         <a href="login.html">
           <button class="Btn">
@@ -227,7 +222,6 @@
         </div>
         <p class="title">Cadastro de Ativiades</p>
         <form class="form" action="/cad_atividade" method="post">
-         
           <div class="input-group">
             <label for="descricao">Descrição</label>
             <input

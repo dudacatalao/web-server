@@ -112,13 +112,13 @@ class MyHandler(SimpleHTTPRequestHandler):
             with open(os.path.join(os.getcwd(), 'atividades_professor.html'), 'r' , encoding='utf-8') as file:
                 content = file.read()
 
-                nomes = self.obter_nomes()  
-                nomes_html = '<ul>'
-                for nome in nomes:
-                    nomes_html += f'<li>{nome}</li>'
-                nomes_html += '</ul>'
+                # nomes = self.obter_nomes()  
+                # nomes_html = '<ul>'
+                # for nome in nomes:
+                #     nomes_html += f'<li>{nome}</li>'
+                # nomes_html += '</ul>'
+                # content = content.replace('<!--NOMES-->', nomes_html)
 
-                content = content.replace('<!--NOMES-->', nomes_html)
                 content = content.replace('{professor}', professor)  
                 content = content.replace('{codigo}', codigo)
 
@@ -175,7 +175,6 @@ class MyHandler(SimpleHTTPRequestHandler):
 
         with open(os.path.join(os.getcwd(), 'atividades_professor.html'), 'r', encoding='utf-8') as login_file:
             content = login_file.read()
-            print('aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
 
             self.send_response(200)
             self.send_header('Content-type', 'text/html ; charset=utf-8')
@@ -289,6 +288,7 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(302)
             self.send_header('Content-type', 'text/html ; charset=utf-8')
             self.end_headers()
+            
 
         elif self.path == '/cad_atividade':
             #criar uma pagina ou msg pra ser mostrada
@@ -305,10 +305,25 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(302)
             self.send_header('Content-type', 'text/html ; charset=utf-8')
             self.end_headers()
+
+        elif self.path == '/confirmar_associacao':
+            #criar uma pagina ou msg pra ser mostrada
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            professor = form_data.get('professor', [''])[0]
+            codigo = form_data.get('codigo', [''])[0]
+            
+            with open('turma_atividade.txt', 'w', encoding='utf-8') as file:
+                file.write(f'{professor};{codigo}\n')
+
+            self.send_response(302)
+            self.send_header('Content-type', 'text/html ; charset=utf-8')
+            self.end_headers()
+            self.wfile.write('Turma associada com sucesso!'.encode('utf-8'))
         else:
             super(MyHandler, self).do_POST()
-
-        
 
 
 #define a porta e e ip utilizados

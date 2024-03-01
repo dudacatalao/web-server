@@ -147,16 +147,32 @@ class MyHandler(SimpleHTTPRequestHandler):
             return senha_hash == resultado[0]
         return False
     
-    # def turma_existente(self, codigo, descricao):
-    #     cursor = conexao.cursor()
-    #     cursor.execute("SELECT descricao FROM dados_login WHERE login = %s", (codigo,))
-    #     resultado = cursor.fetchone()
-    #     cursor.close()
+    def atividade_existente(self, login, senha):
+        cursor = conexao.cursor()
+        cursor.execute("SELECT senha FROM dados_login WHERE login = %s", (login,))
+        resultado = cursor.fetchone()
+        cursor.close()
 
-    #     if resultado:
-    #         senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
-    #         return senha_hash == resultado[0]
-    #     return False
+        if resultado:
+            senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+            return senha_hash == resultado[0]
+        return False
+    
+    def turma_existente(self, codigo, descricao):
+        cursor = conexao.cursor()
+        try:
+            cursor.execute("SELECT turmas FROM turmas WHERE id_turma = %s", (codigo,))
+            resultado = cursor.fetchone()
+            cursor.close()
+
+            if resultado:
+                return descricao == resultado[0]
+            return False
+        
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            return False
+
     
         # with open('dados_login.txt', 'r',encoding='utf-8') as file:
         #     for line in file:
@@ -179,10 +195,22 @@ class MyHandler(SimpleHTTPRequestHandler):
         cursor.execute("INSERT INTO dados_login (login, senha, nome) VALUES (%s, %s, %s)", (login, senha_hash, nome))
         conexao.commit()
         cursor.close()
-        # senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+        
+    def adicionar_turma(self, login, senha, nome):
+        #trecho hash
+        cursor = conexao.cursor()
 
-        # with open('dados_login.txt', 'w', encoding='utf-8') as file:
-        #     file.write(f'{login};{senha_hash};{nome}\n')
+        content_length = int(self.headers['Content-Length'])
+        body = self.rfile.read(content_length).decode('utf-8')
+        form_data = parse_qs(body)
+
+        codigo = form_data.get('codigo', [''])[0]
+        descricao = form_data.get('descricao', [''])[0]
+        
+        cursor.execute("INSERT INTO turmas (id_turma, descricao) VALUES (%s, %s)", (codigo, descricao))
+        conexao.commit()
+        cursor.close()
+        
     
     def remover_ultima_linha(self, arquivo):
             print('Excluindo a ultima linha..')
@@ -331,13 +359,31 @@ class MyHandler(SimpleHTTPRequestHandler):
             codigo = form_data.get('codigo', [''])[0]
             descricao = form_data.get('descricao', [''])[0]
 
-            with open('dados_turma.txt', 'a', encoding='utf-8') as file:
-                file.write(f'{codigo};{descricao}\n')
+            if self.turma_existente(codigo, descricao):
+                self.send_response(200)
+                self.send_header()
+                self.send_header('Content-type', 'text/html ; charset=utf-8')
+                self.end_headers()
+                mensagem = f'Turma cadastrada com sucesso!'
+                self.wfile(mensagem.encode('utf-8'))
 
-            self.send_response(302)
-            self.send_header('Content-type', 'text/html ; charset=utf-8')
-            self.end_headers()
-            
+            else:
+                cursor = conexao.cursor()
+                cursor.execute("SELECT id_turma FROM turmas WHERE id_turma = %s", (codigo,))
+                resultado = cursor.fetchone()
+
+                if resultado:
+                    self.send_response(302)
+                    self.send_header('Location', '/login/failed')
+                    self.end_headers()
+                    cursor.close()
+                    return
+                else:
+                    self.send_response(302)
+                    self.send_header('Location', f'/cad_turma?codigo={codigo}&descricao={descricao}') #parei aqui
+                    self.end_headers()
+                    cursor.close()
+                    return
 
         elif self.path == '/cad_atividade':
             #criar uma pagina ou msg pra ser mostrada
@@ -348,12 +394,13 @@ class MyHandler(SimpleHTTPRequestHandler):
             codigo = form_data.get('codigo', [''])[0]
             descricao = form_data.get('descricao', [''])[0]
 
-            with open('dados_atividades.txt', 'a', encoding='utf-8') as file:
-                file.write(f'{codigo};{descricao}\n')
 
             self.send_response(302)
             self.send_header('Content-type', 'text/html ; charset=utf-8')
             self.end_headers()
+
+            # with open('dados_atividades.txt', 'a', encoding='utf-8') as file:
+            #     file.write(f'{codigo};{descricao}\n')
 
         elif self.path == '/confirmar_associacao':
             #criar uma pagina ou msg pra ser mostrada

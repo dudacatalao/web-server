@@ -9,7 +9,6 @@ from database import conectar
 conexao = conectar()
 
 
-
 class MyHandler(SimpleHTTPRequestHandler):
     def list_directory(self, path):
         try:
@@ -196,21 +195,13 @@ class MyHandler(SimpleHTTPRequestHandler):
         conexao.commit()
         cursor.close()
         
-    def adicionar_turma(self, login, senha, nome):
+    def adicionar_turma(self, codigo, descricao):
         #trecho hash
         cursor = conexao.cursor()
-
-        content_length = int(self.headers['Content-Length'])
-        body = self.rfile.read(content_length).decode('utf-8')
-        form_data = parse_qs(body)
-
-        codigo = form_data.get('codigo', [''])[0]
-        descricao = form_data.get('descricao', [''])[0]
         
         cursor.execute("INSERT INTO turmas (id_turma, descricao) VALUES (%s, %s)", (codigo, descricao))
         conexao.commit()
         cursor.close()
-        
     
     def remover_ultima_linha(self, arquivo):
             print('Excluindo a ultima linha..')
@@ -245,8 +236,56 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             content = content.replace('<!--NOMES-->', nomes_html)
 
-            
+    def carrega_turmas_professor(self, login):
+        #carregtando turmas do professor
+        cursor = conexao.cursor()
+        cursor.execute('SELECT id_professor, nome FROM dados_login WHERE login = %s', (login,))
+        resultado = cursor.fetchone()
+        cursor.close()
 
+        id_professor = resultado[0]
+
+        #obter turmas do professor
+        cursor = conexao.cursor()
+        cursor.execute(
+            "SELECT turmas.id_turma, turmas.descricaoFROM turmas_professor"
+            "INNER JOIN  turmas ON turmas_professor.id_turma = turmas.id_turma WHERE turmas_professor.id_professor = %s",
+            (id_professor,))
+        
+        turmas = cursor.fetchone()
+        cursor.close()
+
+        #construindo dinamicamente as linhas da tabela turmas do professor
+        linhas_tabela = ""
+        for turma in turmas:
+            id_turma = turma[0]
+            descricao_turma = turma[1]
+            link_Atividade = "<a href= 'atividade_turma?id{}'><i class='fas fa-pencil-alt'></i></a>".format(id_turma)
+            linha = "<tr><td style='text-align:center'>{}</td><td style='text-align:center'>{}</td></tr>".format(id_turma,descricao_turma,link_Atividade)
+            linhas_tavela += linha
+
+        cursor = conexao.cursor()
+        cursor.execute("SELECT id_turma, descricao FROM turmas")
+        turmas = cursor.fetchall()
+        cursor.close()
+
+        opcoes_caixa_selecao = ""
+        for turma in turmas:
+            opcoes_caixa_selecao += "<option value='{}'>{}</option>".format(turma[0], turma[1])
+
+        with open(os.path.join(os.getcwd(), 'Turma_Professor.html'), 'r', encoding='utf-8') as cad_turma_file:
+            content = cad_turma_file.read()
+
+            content = content.replace('{nome_professor}', resultado[1])
+            content = content.replace('{id_professor}', str(id_professor))
+            content = content.replace('{login}', str(login))
+
+            content = content.replace('<!-- Opções da caixa de seleção serão inseridas aqui -->', opcoes_caixa_selecao)
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+
+        self.wfile.write(content.encode('utf-8'))
 
     def do_POST(self):
         #verifica se a rota é enviar login
@@ -260,14 +299,15 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             login = form_data.get('email', [''])[0]
             senha = form_data.get('senha', [''])[0]
-            
 
             if self.usuario_existente(login, senha):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html ; charset=utf-8')
                 self.end_headers()
                 mensagem = f'Usuário {login} logado com sucesso!'
+                #aqui
                 self.wfile.write(mensagem.encode('utf-8'))
+                #self.carrega_turmas_professor(login)
             else:
                 cursor = conexao.cursor()
                 cursor.execute("SELECT senha FROM dados_login WHERE login = %s", (login,))
@@ -285,21 +325,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
                     cursor.close()
                     return
-                
-                # if any(line.startswith(f"{login};") for line in open('dados_login.txt', 'r', encoding='utf-8')):
-                #     self.send_response(302)
-                #     self.send_header('Location', '/login_failed')
-                #     self.end_headers()
-                #     return  
-                # else:
-                #     self.adicionar_usuario(login, senha, nome='None')
-
-                    
-                #     self.send_response(302)
-                #     self.send_header('Location', f'/cadastro?login={login}&senha{senha}')
-                #     self.end_headers()
-
-                #     return      
+                   
                 
         elif self.path.startswith('/confirmar_cadastro'):
 

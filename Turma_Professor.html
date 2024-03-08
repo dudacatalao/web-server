@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página de Cadastro de Turmas</title>
+  <link rel="stylesheet" href="style/style.css">
+</head>
+<body>
+
+  <div class="form-container">
+    <div class="error-message">
+      <!-- Mensagem de erro será inserida aqui -->
+
+    </div>
+    <div class="welcome-message">
+
+    </div>
+    <p class="title">Turmas do Professor:</p> 
+    <h2>{nome_professor}</h2>
+    <table>
+       <tr>
+          <th>ID</th>
+          <th>Turma</th>
+          <th>Atividades</th>
+       </tr>
+       <tr>
+       <!-- Tabela com linhas zebradas -->
+       </tr>
+    </table>
+    <hr>
+    <form action="/confirmar_turma_professor" method="post">
+
+      <h3>Associar Turmas ao Professor:</h3>
+
+
+      <select id="id_turma" name="id_turma" required>
+      <!-- Opções da caixa de seleção serão inseridas aqui -->
+      </select>
+      <br>
+      <br>
+      <input type="hidden" id="id_professor" name="id_professor" value="{id_professor}">
+      <input type="hidden" id="login" name="login" value="{login}">
+
+      <button type="submit">Confirmar Cadastro de Turma</button>
+    </form>
+  </div>
+
+</body>
+<script src="https://kit.fontawesome.com/c9237383f1.js" crossorigin="anonymous"></script>
+</html>

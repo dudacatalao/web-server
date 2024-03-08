@@ -114,13 +114,6 @@ class MyHandler(SimpleHTTPRequestHandler):
             with open(os.path.join(os.getcwd(), 'atividades_professor.html'), 'r' , encoding='utf-8') as file:
                 content = file.read()
 
-                # nomes = self.obter_nomes()  
-                # nomes_html = '<ul>'
-                # for nome in nomes:
-                #     nomes_html += f'<li>{nome}</li>'
-                # nomes_html += '</ul>'
-                # content = content.replace('<!--NOMES-->', nomes_html)
-
                 content = content.replace('{professor}', professor)  
                 content = content.replace('{codigo}', codigo)
 
@@ -144,47 +137,31 @@ class MyHandler(SimpleHTTPRequestHandler):
         if resultado:
             senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
             return senha_hash == resultado[0]
+        
         return False
     
-    def atividade_existente(self, login, senha):
-        cursor = conexao.cursor()
-        cursor.execute("SELECT senha FROM dados_login WHERE login = %s", (login,))
-        resultado = cursor.fetchone()
-        cursor.close()
+    # def atividade_existente(self, login, senha):
+    #     cursor = conexao.cursor()
+    #     cursor.execute("SELECT senha FROM dados_login WHERE login = %s", (login,))
+    #     resultado = cursor.fetchone()
+    #     cursor.close()
 
-        if resultado:
-            senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
-            return senha_hash == resultado[0]
-        return False
+    #     if resultado:
+    #         senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
+    #         return senha_hash == resultado[0]
+    #     return False
     
     def turma_existente(self, codigo, descricao):
         cursor = conexao.cursor()
-        try:
-            cursor.execute("SELECT turmas FROM turmas WHERE id_turma = %s", (codigo,))
-            resultado = cursor.fetchone()
-            cursor.close()
-
-            if resultado:
-                return descricao == resultado[0]
-            return False
+        cursor.execute("SELECT id_turma FROM turmas WHERE id_turma = %s", (codigo,))
+        resultado = cursor.fetchone()
+        cursor.close()
         
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            return False
+        if resultado:
+            return descricao == resultado[0]
+        return False
 
-    
-        # with open('dados_login.txt', 'r',encoding='utf-8') as file:
-        #     for line in file:
-        #         if line.strip():
-        #             stored_login, stored_senha_hash, stored_nome = line.strip().split(';')
-        #             if login == stored_login:
-        #                 print('Login informado localizado')
-        #                 print('senha: ' + senha)
 
-        #                 #trecho hash
-        #                 senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
-        #                 return senha_hash == stored_senha_hash
-        # return False
     
     def adicionar_usuario(self, login, senha, nome):
         #trecho hash
@@ -248,11 +225,10 @@ class MyHandler(SimpleHTTPRequestHandler):
         #obter turmas do professor
         cursor = conexao.cursor()
         cursor.execute(
-            "SELECT turmas.id_turma, turmas.descricaoFROM turmas_professor"
-            "INNER JOIN  turmas ON turmas_professor.id_turma = turmas.id_turma WHERE turmas_professor.id_professor = %s",
+            "SELECT turmas.id_turma, turmas.descricao FROM turmas_professor INNER JOIN  turmas ON turmas_professor.id_turma = turmas.id_turma WHERE turmas_professor.id_professor = %s",
             (id_professor,))
         
-        turmas = cursor.fetchone()
+        turmas = cursor.fetchall()
         cursor.close()
 
         #construindo dinamicamente as linhas da tabela turmas do professor
@@ -260,9 +236,9 @@ class MyHandler(SimpleHTTPRequestHandler):
         for turma in turmas:
             id_turma = turma[0]
             descricao_turma = turma[1]
-            link_Atividade = "<a href= 'atividade_turma?id{}'><i class='fas fa-pencil-alt'></i></a>".format(id_turma)
-            linha = "<tr><td style='text-align:center'>{}</td><td style='text-align:center'>{}</td></tr>".format(id_turma,descricao_turma,link_Atividade)
-            linhas_tavela += linha
+            link_atividade = "<a href='/atividade_turma?id{}'><i class='fas fa-pencil-alt'></i></a>".format(id_turma)
+            linha = "<tr><td style='text-align:center'>{}</td><td style='text-align:center'>{}</td></tr>".format(id_turma,descricao_turma,link_atividade)
+            linhas_tabela += linha
 
         cursor = conexao.cursor()
         cursor.execute("SELECT id_turma, descricao FROM turmas")
@@ -304,10 +280,10 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html ; charset=utf-8')
                 self.end_headers()
+                self.carrega_turmas_professor(login)
                 mensagem = f'Usuário {login} logado com sucesso!'
-                #aqui
                 self.wfile.write(mensagem.encode('utf-8'))
-                #self.carrega_turmas_professor(login)
+                
             else:
                 cursor = conexao.cursor()
                 cursor.execute("SELECT senha FROM dados_login WHERE login = %s", (login,))
@@ -350,31 +326,6 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content.encode('utf-8'))
 
-            # senha_hash = hashlib.sha3_256(senha.encode('utf-8')).hexdigest()
-            # print('nome:' + nome)
-            # if self.usuario_existente(login, senha):
-            #     with open('dados_login.txt', 'r', encoding='utf-8') as file:
-            #         lines = file.readlines()
-
-            #     with open('dados_login.txt', 'a', encoding='utf-8') as file:
-            #         for line in lines:
-            #             stored_login, stored_senha, stored_nome = line.strip().split(';')
-            #             if login == stored_login and senha_hash == stored_senha:
-            #                 line = f"{login};{senha_hash};{nome}\n"
-
-            #             file.write(line)
-
-            #     self.send_response(302)
-            #     self.send_header('Content-type', 'text/html ; charset=utf-8')
-            #     self.end_headers()
-            #     self.wfile.write('Registro recebido com sucesso!'.encode('utf-8'))
-
-            # else:
-            #     self.remover_ultima_linha('dados_login.txt')
-            #     self.send_response(302)
-            #     self.send_header('Content-type', 'text/html; charset=utf-8')
-            #     self.end_headers()
-            #     self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
 
         elif self.path == '/cad_turma':
             #criar uma pagina ou msg pra ser mostrada
@@ -384,6 +335,8 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             codigo = form_data.get('codigo', [''])[0]
             descricao = form_data.get('descricao', [''])[0]
+
+            self.adicionar_turma(codigo, descricao)
 
             if self.turma_existente(codigo, descricao):
                 self.send_response(200)
@@ -400,13 +353,13 @@ class MyHandler(SimpleHTTPRequestHandler):
 
                 if resultado:
                     self.send_response(302)
-                    self.send_header('Location', '/login/failed')
+                    self.send_header('Location', '/login/failed') 
                     self.end_headers()
                     cursor.close()
                     return
                 else:
                     self.send_response(302)
-                    self.send_header('Location', f'/cad_turma?codigo={codigo}&descricao={descricao}') #parei aqui
+                    self.send_header('Location', 'text/html ; charset=utf-8')
                     self.end_headers()
                     cursor.close()
                     return
@@ -425,8 +378,6 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'text/html ; charset=utf-8')
             self.end_headers()
 
-            # with open('dados_atividades.txt', 'a', encoding='utf-8') as file:
-            #     file.write(f'{codigo};{descricao}\n')
 
         elif self.path == '/confirmar_associacao':
             #criar uma pagina ou msg pra ser mostrada
